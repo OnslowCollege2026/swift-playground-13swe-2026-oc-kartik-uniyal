@@ -4,16 +4,18 @@
 @main
 struct SwiftPlayground {
     static func main() {
-        print(1+1)
+        let lunches: [Double] = [6.50, 8.00, 5.75, 9.20, 7.10]
+
+        let days = [ "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+
     }
 }
 
-let lunches = [6.50, 8.00, 5.75, 9.20, 7.10]
-let days = [ " 1,", " 2", " 3", "4", "5"]
+let lunches: [Double] = [6.50, 8.00, 5.75, 9.20, 7.10]
 
-func food(){
-    for i in lunches{
-    print("\days[i]"): \(lunches[i]")
-    
-} 
+func CostEachDay(Lunches:[Double] ){
+    for lunches in lunches {
+    print(lunches)
 }
+
+} 
