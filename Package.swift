@@ -13,3 +13,20 @@ let package = Package(
         ),
     ]
 )
+
+
+
+let days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+
+
+struct SwiftPlayground {
+    static fun main() {
+        let lunches: (double) = [6.50, 8.00, 5.75, 9.20, 7.10]
+    }
+}
+
+func CostEachDay(){
+    for i in days 0..<days.count{
+    print(days)    
+    }
+}
