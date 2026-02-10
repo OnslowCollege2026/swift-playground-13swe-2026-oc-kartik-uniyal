@@ -4,18 +4,18 @@
 @main
 struct SwiftPlayground {
     static func main() {
-        let lunches: [Double] = [6.50, 8.00, 5.75, 9.20, 7.10]
-
-        let days = [ "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
-
+        let numbers = [45, 78, 89, 32, 50, 92, 67, 41, 99, 56]
+        // Curving each score by 5
+        let total = numbers.map { number in
+            return number + 5
+        // Filtering the number to only accept 50 or more
+        }.filter { number in
+            return number >= 50
+        // Calculating the average scores
+        }.reduce(0) { result, number in
+            return result + number
+        }
+        // Printing the total score
+        print(total/8)
     }
 }
-
-let lunches: [Double] = [6.50, 8.00, 5.75, 9.20, 7.10]
-
-func CostEachDay(Lunches:[Double] ){
-    for lunches in lunches {
-    print(lunches)
-}
-
-} 
