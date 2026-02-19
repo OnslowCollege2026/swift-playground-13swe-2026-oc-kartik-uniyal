@@ -55,13 +55,11 @@ struct SwiftPlayground {
                 name: "John Quimpo",
                 age: 17,
                 nsn: 12_345_678,
-                email: "samuel.thomas@student.onslow.school.nz",
+                email: "john.quimpo@student.onslow.school.nz",
             ),
         ]
 
-        print("ddyd")
 
-    }
 }
 
-SwiftPlayground.main()
+}
