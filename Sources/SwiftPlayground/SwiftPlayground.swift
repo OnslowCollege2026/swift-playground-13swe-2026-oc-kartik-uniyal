@@ -12,7 +12,13 @@ struct SwiftPlayground {
 print("Car one is a beautiful \(carOne.brand) \(carOne.model) and made in \(carOne.year)")
 print("Car two is a beautiful \(carTwo.brand) \(carTwo.model) and made in \(carTwo.year)")
 
+//Bank accounts
+let accountOne = BankAccount(owner: "Kartik", balance: 1000000)
+let accountTwo = BankAccount(owner: "John", balance: 54.653)
 
+// Printing the accounts
+print(accountOne.description())
+print(accountTwo.description())
 }
 
 }
@@ -30,11 +36,9 @@ struct BankAccount{
     var balance: Double
 
     func description() -> String {
-    return "Owners accoutns are \(accountOne) and "
+    return "Owners accoutns are \(self.owner) and the balance is \(self.balance) "
 }
 }
 
 
 
-let accountOne = BankAccount(owner: "Kartik", balance: 1000000)
-let accountTwo = BankAccount(owner: "John", balance: 54.653)
