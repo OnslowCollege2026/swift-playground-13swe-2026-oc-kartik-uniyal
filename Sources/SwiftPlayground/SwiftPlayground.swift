@@ -40,5 +40,11 @@ struct BankAccount{
 }
 }
 
+//rectangle struct that has width and hight
+struct rectangle{ 
+    var width: Double
+    var hight: Double
+}
 
-
+let rectangleOne = rectangle(width: 15.67, hight: 172)
+let rectangleTwo = rectangle(width: 30, hight: 55)

@@ -8,12 +8,7 @@
             "name": "Debug SwiftPlayground",
             "target": "SwiftPlayground",
             "configuration": "debug",
-            "preLaunchTask": "swift: Build Debug SwiftPlayground",
-            "disableASLR": false,
-            "initCommands": [
-                "settings set target.disable-aslr false"
-            ],
-            "runInTerminal": true
+            "preLaunchTask": "swift: Build Debug SwiftPlayground"
         },
         {
             "type": "swift",
@@ -23,12 +18,7 @@
             "name": "Release SwiftPlayground",
             "target": "SwiftPlayground",
             "configuration": "release",
-            "preLaunchTask": "swift: Build Release SwiftPlayground",
-            "disableASLR": false,
-            "initCommands": [
-                "settings set target.disable-aslr false"
-            ],
-            "runInTerminal": true
+            "preLaunchTask": "swift: Build Release SwiftPlayground"
         }
     ]
 }
