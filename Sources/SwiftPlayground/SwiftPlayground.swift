@@ -24,12 +24,15 @@ print(accountTwo.description())
 
 print("-------------------")
 
+//Creating rectangles
 let rectangleOne = rectangle(width: 15.67, hight: 172)
 let rectangleTwo = rectangle(width: 30, hight: 55)
 
+//Printing the rectangles
 print("Rectangle one's area is \(rectangleOne.area())")
 print("Rectangle two's area is \(rectangleTwo.area())")
 
+//Checking which rectangle is bigger in area
 if rectangleOne.area() > rectangleTwo.area() {
     print("Rectangle one is bigger")
 }else {
@@ -37,16 +40,17 @@ if rectangleOne.area() > rectangleTwo.area() {
 }
 
 print("-------------------")
-
+//Creating the quest
 let easyQuest = Quest(title: "Collect 10 wood", difficulty: "easy", reward: 10, rank: 1)
 let mediumQuest = Quest(title: "Kill 10 eneimes", difficulty: "Medium", reward: 20, rank: 2)
 let hardQuest = Quest(title: "Kill the final boss", difficulty: "Hard", reward: 30, rank: 3)
 
+// Printing the quest information
 print(easyQuest.printBadge())
 print(mediumQuest.printBadge())
 print(hardQuest.printBadge())
 
-
+// Checking which quest is the hardest
 if easyQuest.rank > mediumQuest.rank && easyQuest.rank > hardQuest.rank {
     print("Easy quest is the highest")
 } else if mediumQuest.rank > easyQuest.rank && mediumQuest.rank > hardQuest.rank {
@@ -65,10 +69,12 @@ struct car {
     let year: Int
 }
 
+//Bank account struct that has owner and balance
 struct BankAccount{
     var owner: String
     var balance: Double
 
+//func to show the bank account information
     func description() -> String {
     return "Owners accoutns are \(self.owner) and the balance is \(self.balance) "
 
@@ -81,16 +87,19 @@ struct rectangle{
     var width: Double
     var hight: Double
 
+//func that returns the area
     func area() -> Double {
        return (width * hight)
     }
 }
 
+// Quest struct that has title, difficulty, reward, and rank 
 struct Quest {
     var title: String
     var difficulty : String
     var reward: Int
     var rank: Int
+    // func that shows the quest information 
     func printBadge() -> String{
         return ("\(title) - \(difficulty) - \(reward)")
 
