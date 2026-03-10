@@ -24,15 +24,21 @@ struct SwiftPlayground {
         (name: "wisp", score:2)
     ]
 
-    // Using filter to only get 
+    // Using filter to only get the m and w sightings
     let filterSightings = sightings.filter { 
         $0.name.hasPrefix("m") || $0.name.hasPrefix("w")
     }
 
+    // Using filter to only keep the numbers
     let extractedScores = filterSightings.map { $0.score }
 
+    // Using reduce to add all the numbers
     let total = extractedScores.reduce(0,+)
 
+    // Printing the total
     print(total)
+
+    // Task C
+    
     } 
 }
