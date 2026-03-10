@@ -6,6 +6,7 @@ struct SwiftPlayground {
     static func main() {
 
     let mixed = ["Cat", "7", "Owl", "15", "Dog", "3"]
-
+    let numbers = mixed.compactMap {Int($0)}
+    print(numbers)
     }
 }
