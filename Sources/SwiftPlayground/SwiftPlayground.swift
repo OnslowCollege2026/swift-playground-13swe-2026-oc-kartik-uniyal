@@ -31,4 +31,5 @@ struct SwiftPlayground {
     let extractedScores = filterSightings.map { $0.score }
     }
     
+    let total = extractedScores.reduce (0, +) 
 }
