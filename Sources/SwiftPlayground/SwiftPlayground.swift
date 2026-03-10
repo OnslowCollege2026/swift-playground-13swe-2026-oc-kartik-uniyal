@@ -28,7 +28,7 @@ struct SwiftPlayground {
         $0.name.hasPrefix("m") || $0.name.hasPrefix("w")
     }
 
-    let scores = filterSightings.Map {$0.scores}
+    let extractedScores = filterSightings.map { $0.score }
     }
     
 }
