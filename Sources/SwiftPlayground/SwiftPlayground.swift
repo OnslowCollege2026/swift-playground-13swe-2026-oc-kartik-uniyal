@@ -24,12 +24,15 @@ struct SwiftPlayground {
         (name: "wisp", score:2)
     ]
 
+    // Using filter to only get 
     let filterSightings = sightings.filter { 
         $0.name.hasPrefix("m") || $0.name.hasPrefix("w")
     }
 
     let extractedScores = filterSightings.map { $0.score }
-    }
-    
-    let total = extractedScores.reduce (0,+)
+
+    let total = extractedScores.reduce(0,+)
+
+    print(total)
+    } 
 }
