@@ -25,7 +25,7 @@ struct SwiftPlayground {
     ]
 
     let filterSightings = sightings.filter { 
-        $0.name.first?.uppercased() =="M" || $0.name.first?.uppercased() == "W"
+        $0.name.hasPrefix("M") || $0.name.first?.uppercased() == "W"
     }
 
     print(filterSightings)
