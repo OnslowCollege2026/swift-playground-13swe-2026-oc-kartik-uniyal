@@ -24,7 +24,11 @@ struct SwiftPlayground {
         (name: "wisp", score:2)
     ]
 
-    let filterSightings = sightings.filter { $0.name.first?.uppercased() =="M" || $0.name.first?.uppercased() == "W"}
+    let filterSightings = sightings.filter { 
+        $0.name.first?.uppercased() =="M" || $0.name.first?.uppercased() == "W"
+    }
+
+    print(filterSightings)
     }
     
 }
