@@ -39,6 +39,8 @@ struct SwiftPlayground {
     print(total)
 
     // Task C
-    
+
     } 
 }
+
+func accepts ( input: String, )
