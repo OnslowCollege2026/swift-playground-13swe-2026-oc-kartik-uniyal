@@ -11,8 +11,18 @@ struct SwiftPlayground {
     // Using compact map to only keep the integers
     let numbers = mixed.compactMap {Int($0)}
 
-    //Printing the numbers
+    // Printing the numbers
     print(numbers)
+
+    // Task B
+
+    let sightings = [
+        (name: "moth", score:3),
+        (name: "wolf", score:9),
+        (name: "raven", score:4),
+        (name: "mist", score:7),
+        (name: "wisp", score:2),
+    ]
 
     
     }
