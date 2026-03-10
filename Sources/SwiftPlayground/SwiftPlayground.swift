@@ -25,10 +25,10 @@ struct SwiftPlayground {
     ]
 
     let filterSightings = sightings.filter { 
-        $0.name.hasPrefix("M") || $0.name.hasPrefix("W")
+        $0.name.hasPrefix("m") || $0.name.hasPrefix("w")
     }
 
-    print(filterSightings)
+    let scores = filterSightings.Map {Int($0)}
     }
     
 }
