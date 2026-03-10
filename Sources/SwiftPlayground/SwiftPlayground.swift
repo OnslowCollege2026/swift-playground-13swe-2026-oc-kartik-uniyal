@@ -43,4 +43,7 @@ struct SwiftPlayground {
     } 
 }
 
-func accepts ( input: String, isVlaid: (String) -> Bool) -> Bool
+func accepts (_ input: String, isVlaid: (String) -> Bool) -> Bool {
+    return isValid(input)
+}
+
