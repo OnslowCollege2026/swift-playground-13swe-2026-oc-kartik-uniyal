@@ -39,11 +39,13 @@ struct SwiftPlayground {
     print(total)
 
     // Task C
+    func accepts (_ input: String, isValid: (String) -> Bool) -> Bool {
+    return isValid(input)
+}
 
+    Let sample = accepts(moonlight)
     } 
 }
 
-func accepts (_ input: String, isValid: (String) -> Bool) -> Bool {
-    return isValid(input)
-}
+
 
