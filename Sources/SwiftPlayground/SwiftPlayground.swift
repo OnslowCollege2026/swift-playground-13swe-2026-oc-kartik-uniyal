@@ -16,6 +16,7 @@ struct SwiftPlayground {
 
     // Task B
 
+    // Sightings list
     let sightings = [
         (name: "moth", score:3),
         (name: "wolf", score:9),
@@ -34,7 +35,7 @@ struct SwiftPlayground {
 
     // Using reduce to add all the numbers
     let total = extractedScores.reduce(0,+)
-
+    print("------------")
     // Printing the total
     print(total)
 
@@ -42,10 +43,41 @@ struct SwiftPlayground {
     func accepts (_ input: String, isValid: (String) -> Bool) -> Bool {
     return isValid(input)
 }
+    // Sample one that checks if the word is lowercased
+    let sample = accepts("moonlight") {
+        word in return word == word.lowercased()
+    }
 
-    Let sample = accepts(moonlight)
+    // Sample two that checks if it more than 8 letters
+    let sample2 = accepts("moonlight") {
+        word in return word.count > 8
+    }
+
+    print("-----------")
+
+    // Printing both samples
+    print(sample)
+    print(sample2)
+
+    // Task D
+
+    // Archive list
+    let archive = [
+    [
+        [["candle", "dust"], ["mirror", "ash"]],
+        [["whisper", "shadow"], ["clock", "veil"]]
+    ],
+    [
+        [["stone", "key"], ["relic", "name"]],
+        [["cipher", "bone"], ["ember", "seal"]]
+    ],
+    [
+        [["feather", "ink"], ["glow", "eclipse"]],
+        [["riddle", "echo"], ["ember", "glyph"]]
+    ]
+]
+
+    //
+
     } 
 }
-
-
-
