@@ -58,7 +58,7 @@ struct SwiftPlayground {
     // Printing both samples
     print(sample)
     print(sample2)
-
+    print("-----------")
     // Task D
 
     // Archive list
@@ -77,7 +77,25 @@ struct SwiftPlayground {
     ]
 ]
 
-    //
-
+    // Finding the last wing that contains a word starting with a e
+    if let wing = archive.last(where:{ wing in wing.contains { 
+        room in room.contains{ 
+            shelve in shelve.contains { $0 .hasPrefix("e")}
+        }
+    }
+}),
+// Finding the last room that contains a 4 letter word
+let room = wing.last(where: { room in 
+    room.contains {
+    shelve in shelve.contains { $0.count == 4}
+    }
+}), 
+// Finding the last shelf that contains a word starting with the letter e
+let shelve = room.last(where: { shelve in shelve.contains { $0.hasPrefix ("e")}
+}),
+// Finding the first word that starts with the letter e
+let word = shelve.first(where: { $0.hasPrefix("e")}) {
+    print(word)
+    }
     } 
 }
