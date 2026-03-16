@@ -43,6 +43,41 @@ struct Order : Identifiable, Codable, FetchableRecord, PersistableRecord{
     }
 }
 
+struct Item: Identifiable, Codable, FetchableRecord, PersistableRecord{
+    /// The item id
+    let id: Int
+    
+    /// Item name
+    let name: String
+
+    /// Iem price
+    let price: Double
+
+    enum CodingKeys: String, CodingKey {
+        case id = "item ID"
+        case name = "name"
+        case price = "price"
+
+    }
+}
+
+struct OrderLine: Identifiable, Codable, FetchableRecord, PersistableRecord {
+    /// OrderID
+    let id: Int
+
+    /// Item ID
+    let ItemID: Int
+
+    /// Amount of stuff
+    let quantity: Int
+
+    enum CodingKeys: String, CodingKey {
+        case id = "orderID"
+        case ItemID = "ItemID"
+        case quantity = "quantity"
+    }
+}
+
 @main
 struct SwiftPlayground {
     static func main() {
