@@ -1,15 +1,15 @@
 // The Swift Programming Language
 // https://docs.swift.org/swift-book
 
-import GRDB
 import Foundation
+import GRDB
 
 /// A reservation at the cafe
-struct Purchaser : Codable, FetchableRecord, PersistableRecord{
+struct Purchaser: Codable, FetchableRecord, PersistableRecord {
     /// The purchaser ID
     let id: Int
 
-    /// The name of the customer 
+    /// The name of the customer
     var name: String
 
     /// The number of people at the party/table (minimum 1)
@@ -26,7 +26,7 @@ struct Purchaser : Codable, FetchableRecord, PersistableRecord{
     }
 }
 
-struct Order : Identifiable, Codable, FetchableRecord, PersistableRecord{
+struct Order: Identifiable, Codable, FetchableRecord, PersistableRecord {
     /// The order ID
     let id: Int
 
@@ -43,10 +43,10 @@ struct Order : Identifiable, Codable, FetchableRecord, PersistableRecord{
     }
 }
 
-struct Item: Identifiable, Codable, FetchableRecord, PersistableRecord{
+struct Item: Identifiable, Codable, FetchableRecord, PersistableRecord {
     /// The item id
     let id: Int
-    
+
     /// Item name
     let name: String
 
@@ -81,23 +81,35 @@ struct OrderLine: Identifiable, Codable, FetchableRecord, PersistableRecord {
 @main
 struct SwiftPlayground {
     static func main() {
-        let dbPath = "Sources/SwiftPlayground/cafe.db Sources/SwiftPlayground/SwiftPlayground.swift"
+        let dbPath = "Sources/SwiftPlayground/cafe.db"
         do {
-        let dbQueue = try DatabaseQueue(path: dbPath)
-        print("Database connection successful")
+            let dbQueue = try DatabaseQueue(path: dbPath)
+            print("Database connection successful")
 
-        // Dump the Schema to make sure we are connected to the database file
-        try dbQueue.read { database in
-            try database.dumpSchema()
+            // Dump the Schema to make sure we are connected to the database file
+            try dbQueue.read { database in
+                try database.dumpSchema()
+                let purchaserID: Int = 1
+                let purchaserID: Int = 100
+
+                let purchaser = try Purchaser.fetchOne(database, key: purchaserID)
+                if let purchaser {
+                    print("Found purchaser \(purchaser.name)")
+                } else {
+                    print("No purchaser with Id \(purchaserID) found")
+                }
             }
-
-    // Find a customer at the window seat
-    let windowSitter = Purchaser.filter(key: [
-        "reservedTable" : "Window Seat"
-    ])
-    print(windowSitter)
-    } catch{
-        print(error)
+        } catch {
+            print(error)
+        }
     }
-}
+    // Find a customer at the window seat
+    //let windowSitter = Purchaser.filter(key: [
+    //    "reservedTable" : "Window Seat"
+    //   //])
+    //print(windowSitter)
+    //} catch{
+    //    print(error)
+    //}
+
 }
