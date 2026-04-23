@@ -5,6 +5,42 @@
 import GRDB
 import Foundation
 
+struct bookTable: Identifiable, Codable, FetchableRecord, PersistableRecord {
+    var id: Int
+    var title: String
+    var genre: String
+    var author: String
+
+    enum CodingKeys: String, CodingKey {
+        case id = "bookID"
+        case title = "title"
+        case genre = "genre"
+        case author = "author"
+    }
+}
+
+struct borrowerTable: Identifiable, Codable, FetchableRecord, PersistableRecord {
+    var id: Int
+    var name: String
+    var phone: String
+    var email: String
+
+    enum CodingKeys: String, CodingKey{
+        case id = "borrowerID"
+        case name = "name"
+        case phone = "phone"
+        case email = "email"
+    }
+}
+
+struct loansTable: Identifiable, Codable, FetchableRecord, PersistableRecord {
+    var id: Int
+    var borrowerID: Int
+    var bookID: Int
+    var dateBorrowed: String
+    var dateReturned: String
+}
+
 @main
 struct SwiftPlayground {
     static func main() {
