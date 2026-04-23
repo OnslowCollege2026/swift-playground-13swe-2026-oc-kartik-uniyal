@@ -3,6 +3,7 @@
 // Created on 22/04/2026
 
 import GRDB
+import Foundation
 
 @main
 struct SwiftPlayground {
