@@ -39,6 +39,15 @@ struct loansTable: Identifiable, Codable, FetchableRecord, PersistableRecord {
     var bookID: Int
     var dateBorrowed: String
     var dateReturned: String
+
+    enum CodingKeys: String, CodingKey{
+        case id = "loanID" 
+        case borrowerID = "borrowerID" 
+        case bookID = "bookID"
+        case dateBorrowed = "dateBorrowed"
+        case dateReturned = "dateReturned"
+
+    }
 }
 
 @main
@@ -47,6 +56,16 @@ struct SwiftPlayground {
         let dbPath = "./library.db"
         guard let dbQueue = try? DatabaseQueue(path: dbPath) else {
             fatalError("Could not open database.")
-        }
-    }
+    do {
+        let dbQueue = try DatabaseQueue(path: "./libary.db")
+        try dbQueue.write { db in 
+            try db.create(table: "books") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("title", .text),notNull()
+    }}
+} catch{
+    print("Database error: \(error)")
 }
+}
+    }
+        }
