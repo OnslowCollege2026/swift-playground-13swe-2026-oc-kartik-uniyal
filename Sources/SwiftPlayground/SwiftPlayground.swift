@@ -12,7 +12,7 @@ struct bookTable: Identifiable, Codable, FetchableRecord, PersistableRecord {
     var author: String
 
     enum CodingKeys: String, CodingKey {
-        case id = "ID"
+        case id = "bookID"
         case title = "title"
         case genre = "genre"
         case author = "author"
@@ -83,10 +83,20 @@ struct SwiftPlayground {
                     t.autoIncrementedPrimaryKey("id")
                     t.column("title", .text).notNull()
                 }
+                while true {
+                    print("""
+                    Please choose an option
+                    1.Add book
+                    2.View books
+                    3.Exit
+                    """)
+
+                    let choice = readLine
+                }
             }
             print("Do you want to add a book? y/n")
             let response = readLine()
-            if response == "y" {    
+            if response == "y" {
                 print("Please Enter the title of the book:")
                 let title = readLine() ?? ""
 
@@ -97,6 +107,16 @@ struct SwiftPlayground {
                     )
                 }
                 print("Book succsesfully added")
+            }
+
+            try dbQueue.read { db in
+                let rows = try Row.fetchAll(db, sql: "SELECT * FROM books")
+                print("\nBooks in libary:")
+                for row in rows{
+                let id: Int = row["id"]
+                let title: String = row["title"]
+                print("\(id): \(title)")
+            }
             }
         } catch {
             print("Database error: \(error)")
