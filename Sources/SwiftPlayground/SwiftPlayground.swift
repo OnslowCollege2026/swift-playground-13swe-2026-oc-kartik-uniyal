@@ -90,6 +90,17 @@ func addBook(dbQueue: DatabaseQueue) {
     print("Book added")
 }
 
+/// Shows the main menu options for the libary
+
+func showMenu() {
+    print(
+        """
+    \nLibrary System
+    1.Add a book
+    2.View books
+    3.Exit
+    """)
+}
 @main
 struct SwiftPlayground {
     static func main() {
@@ -102,19 +113,31 @@ struct SwiftPlayground {
                     t.column("title", .text).notNull()
                 }
             }
-            print("Do you want to add a book? y/n")
-            let response = readLine()
-            if response == "y" {
-                addBook(dbQueue: dbQueue)
-            }
+            var isRunning = true
+            while isRunning{
+                showMenu()
+                let choice = readLine()
 
-            try dbQueue.read { db in
+                switch choice {
+                    case "1":
+                    addBook(dbQueue: dbQueue)
+
+                    case "2":
+                    try dbQueue.read { db in
                 let rows = try Row.fetchAll(db, sql: "SELECT * FROM books")
                 print("\nBooks in libary:")
                 for row in rows {
                     let id: Int = row["id"]
                     let title: String = row["title"]
                     print("\(id): \(title)")
+                }
+            }
+                    case "3":
+                    isRunning = false
+                    print("Goodbye") 
+
+                    default:
+                    print("Invalid option")
                 }
             }
         } catch {
