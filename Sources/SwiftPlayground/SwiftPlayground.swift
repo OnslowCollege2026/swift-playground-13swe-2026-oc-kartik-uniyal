@@ -71,6 +71,24 @@ struct loansTable: Identifiable, Codable, FetchableRecord, PersistableRecord {
         static let dateReturned = Column("dateReturned")
     }
 }
+/// Adds a new book to the database
+///
+/// - Parameter:
+///     - dbQueue: the database queue used to access the database
+func addBook(dbQueue: DatabaseQueue) {
+    // Ask the user to enter a book title
+    print("Enter title:")
+    let title = readLine() ?? ""
+    /// Insert the book into the book table
+    try? dbQueue.write { db in
+        try db.execute(
+            sql: "INSERT INTO books (title) VALUES (?)",
+            arguments: [title]
+        )
+    }
+    /// Tell the user the book has been added
+    print("Book added")
+}
 
 @main
 struct SwiftPlayground {
@@ -83,43 +101,25 @@ struct SwiftPlayground {
                     t.autoIncrementedPrimaryKey("id")
                     t.column("title", .text).notNull()
                 }
-                while true {
-                    print("""
-                    Please choose an option
-                    1.Add book
-                    2.View books
-                    3.Exit
-                    """)
-
-                    let choice = readLine
-                }
             }
             print("Do you want to add a book? y/n")
             let response = readLine()
             if response == "y" {
-                print("Please Enter the title of the book:")
-                let title = readLine() ?? ""
-
-                try dbQueue.write { db in
-                    try db.execute(
-                        sql: "INSERT INTO books (title) VALUES (?)",
-                        arguments: [title]
-                    )
-                }
-                print("Book succsesfully added")
+                addBook(dbQueue: dbQueue)
             }
 
             try dbQueue.read { db in
                 let rows = try Row.fetchAll(db, sql: "SELECT * FROM books")
                 print("\nBooks in libary:")
-                for row in rows{
-                let id: Int = row["id"]
-                let title: String = row["title"]
-                print("\(id): \(title)")
-            }
+                for row in rows {
+                    let id: Int = row["id"]
+                    let title: String = row["title"]
+                    print("\(id): \(title)")
+                }
             }
         } catch {
             print("Database error: \(error)")
         }
     }
+
 }
