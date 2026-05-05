@@ -5,6 +5,8 @@
 import Foundation
 import GRDB
 
+/// shows a book record in rw3the data base
+/// Each line repersents to a row in the books table
 struct bookTable: Identifiable, Codable, FetchableRecord, PersistableRecord {
     var id: Int
     var title: String
@@ -71,36 +73,56 @@ struct loansTable: Identifiable, Codable, FetchableRecord, PersistableRecord {
         static let dateReturned = Column("dateReturned")
     }
 }
-/// Adds a new book to the database
-///
-/// - Parameter:
-///     - dbQueue: the database queue used to access the database
-func addBook(dbQueue: DatabaseQueue) {
-    // Ask the user to enter a book title
-    print("Enter title:")
-    let title = readLine() ?? ""
-    /// Insert the book into the book table
-    try? dbQueue.write { db in
-        try db.execute(
-            sql: "INSERT INTO books (title) VALUES (?)",
-            arguments: [title]
-        )
-    }
-    /// Tell the user the book has been added
-    print("Book added")
-}
 
 /// Shows the main menu options for the libary
-
 func showMenu() {
     print(
         """
-    \nLibrary System
-    1.Add a book
-    2.View books
-    3.Exit
-    """)
+        \nLibrary System
+        1.Borrow book
+        2.View books
+        3.Exit
+        """)
 }
+
+func borrowBook(dbQueue: DatabaseQueue) {
+    print("Enter the ID of the book you would like to borrow:")
+    let input = readLine() ?? ""
+    let bookID = Int(input)
+
+    try? dbQueue.write { db in
+        try db.execute(
+            sql: "INSERT INTO loans (bookID) VALUES (?)",
+            arguments: [bookID]
+        )
+    }
+    print("Book borrowed")
+}
+
+func bookOptions(dbQueue: DatabaseQueue) {
+    let books = [
+        "Harry potter",
+        "The Hunger Games",
+        "Haiyku",
+        "The Lord Of The Rings",
+        "Attack On Titan",
+        "The Little Prince",
+        "Deathnote",
+        "My Hero Academia",
+        "Dragon Ball Z",
+        "Bleach",
+    ]
+
+    try? dbQueue.write { db in
+        for book in books {
+            try db.execute(
+                sql: "INSERT INTO books (title) VALUES (?)",
+                arguments: [book]
+            )
+        }
+    }
+}
+
 @main
 struct SwiftPlayground {
     static func main() {
@@ -108,35 +130,45 @@ struct SwiftPlayground {
         do {
             let dbQueue = try DatabaseQueue(path: dbPath)
             try dbQueue.write { db in
+
+                /// Creates the bookd table to store the books in
                 try db.create(table: "books", ifNotExists: true) { t in
                     t.autoIncrementedPrimaryKey("id")
                     t.column("title", .text).notNull()
                 }
+
+                /// Creates the loans table to store the borrowed books
+                try db.create(table: "loans", ifNotExists: true) { t in
+                    t.autoIncrementedPrimaryKey("id")
+                    t.column("bookID", .integer)
+                }
             }
+
+            bookOptions(dbQueue: dbQueue)
             var isRunning = true
-            while isRunning{
+            while isRunning {
                 showMenu()
                 let choice = readLine()
 
                 switch choice {
-                    case "1":
-                    addBook(dbQueue: dbQueue)
+                case "1":
+                    borrowBook(dbQueue: dbQueue)
 
-                    case "2":
+                case "2":
                     try dbQueue.read { db in
-                let rows = try Row.fetchAll(db, sql: "SELECT * FROM books")
-                print("\nBooks in libary:")
-                for row in rows {
-                    let id: Int = row["id"]
-                    let title: String = row["title"]
-                    print("\(id): \(title)")
-                }
-            }
-                    case "3":
+                        let rows = try Row.fetchAll(db, sql: "SELECT * FROM books")
+                        print("\nBooks in libary:")
+                        for row in rows {
+                            let id: Int = row["id"]
+                            let title: String = row["title"]
+                            print("\(id): \(title)")
+                        }
+                    }
+                case "3":
                     isRunning = false
-                    print("Goodbye") 
+                    print("Goodbye")
 
-                    default:
+                default:
                     print("Invalid option")
                 }
             }
