@@ -126,7 +126,7 @@ func bookOptions(dbQueue: DatabaseQueue) {
 @main
 struct SwiftPlayground {
     static func main() {
-        let dbPath = "./library.db"
+        let dbPath = "./bookLibaryDatabase.db"
         do {
             let dbQueue = try DatabaseQueue(path: dbPath)
             try dbQueue.write { db in
