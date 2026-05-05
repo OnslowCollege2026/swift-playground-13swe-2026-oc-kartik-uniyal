@@ -116,7 +116,7 @@ func bookOptions(dbQueue: DatabaseQueue) {
     try? dbQueue.write { db in
         for book in books {
             try db.execute(
-                sql: "INSERT INTO books (title) VALUES (?)",
+                sql: "INSERT INTO bookTable (title,) VALUES (?)",
                 arguments: [book]
             )
         }
@@ -126,7 +126,7 @@ func bookOptions(dbQueue: DatabaseQueue) {
 @main
 struct SwiftPlayground {
     static func main() {
-        let dbPath = "./bookLibaryDatabase.db"
+        let dbPath = "Sources/SwiftPlayground/bookLibaryDatabase.db"
         do {
             let dbQueue = try DatabaseQueue(path: dbPath)
             try dbQueue.write { db in
