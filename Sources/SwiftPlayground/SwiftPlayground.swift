@@ -88,15 +88,18 @@ func showMenu() {
 func borrowBook(dbQueue: DatabaseQueue) {
     print("Enter the ID of the book you would like to borrow:")
     let input = readLine() ?? ""
-    let bookID = Int(input)
 
-    try? dbQueue.write { db in
-        try db.execute(
-            sql: "INSERT INTO loans (bookID) VALUES (?)",
-            arguments: [bookID]
-        )
+    if let bookID = Int(input) {
+        try? dbQueue.write { db in
+            try db.execute(
+                sql: "INSERT INTO loansTable (bookID) VALUES (?)",
+                arguments: [bookID]
+            )
+        }
+        print("Book borrowed")
+    } else {
+        print("Invalid ID")
     }
-    print("Book borrowed")
 }
 
 func bookOptions(dbQueue: DatabaseQueue) {
@@ -112,38 +115,29 @@ func bookOptions(dbQueue: DatabaseQueue) {
         "Dragon Ball Z",
         "Bleach",
     ]
-
-    try? dbQueue.write { db in
-        for book in books {
-            try db.execute(
-                sql: "INSERT INTO bookTable (title,) VALUES (?)",
-                arguments: [book]
-            )
+    do {
+        try dbQueue.write { db in
+            for book in books {
+                try db.execute(
+                    sql: "INSERT INTO bookTable (title, genre, author) VALUES (?, ?, ?)",
+                    arguments: [book, "Unknown", "Unknown"]
+                )
+            }
         }
+    } catch {
+        print("INSERT ERROR", error)
     }
 }
-
 @main
 struct SwiftPlayground {
     static func main() {
         let dbPath = "Sources/SwiftPlayground/bookLibaryDatabase.db"
         do {
             let dbQueue = try DatabaseQueue(path: dbPath)
-            try dbQueue.write { db in
-
-                /// Creates the bookd table to store the books in
-                try db.create(table: "books", ifNotExists: true) { t in
-                    t.autoIncrementedPrimaryKey("id")
-                    t.column("title", .text).notNull()
-                }
-
-                /// Creates the loans table to store the borrowed books
-                try db.create(table: "loans", ifNotExists: true) { t in
-                    t.autoIncrementedPrimaryKey("id")
-                    t.column("bookID", .integer)
-                }
+            try dbQueue.read { db in
+                let count = try Int.fetchOne(db, sql: "SELECT COUNT (*) FROM bookTable") ?? 0
+                print("Book count: \(count)")
             }
-
             bookOptions(dbQueue: dbQueue)
             var isRunning = true
             while isRunning {
@@ -156,10 +150,10 @@ struct SwiftPlayground {
 
                 case "2":
                     try dbQueue.read { db in
-                        let rows = try Row.fetchAll(db, sql: "SELECT * FROM books")
+                        let rows = try Row.fetchAll(db, sql: "SELECT * FROM bookTable")
                         print("\nBooks in libary:")
                         for row in rows {
-                            let id: Int = row["id"]
+                            let id: Int = row["bookID"]
                             let title: String = row["title"]
                             print("\(id): \(title)")
                         }
@@ -178,3 +172,27 @@ struct SwiftPlayground {
     }
 
 }
+
+///func bookOptions(dbQueue: DatabaseQueue) {
+    let books = [
+        "Harry potter",
+        "The Hunger Games",
+        "Haiyku",
+        "The Lord Of The Rings",
+        "Attack On Titan",
+        "The Little Prince",
+        "Deathnote",
+        "My Hero Academia",
+        "Dragon Ball Z",
+        "Bleach",
+    ]
+
+ ///   try? dbQueue.write { db in
+ //       for book in books {
+   //         try db.execute(
+     //           sql: "INSERT INTO bookTable (title) VALUES (?)",
+           //     arguments: [book]
+         //   )
+       // }
+//    }
+//}
