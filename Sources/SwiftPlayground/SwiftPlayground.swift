@@ -7,11 +7,17 @@ import GRDB
 
 /// shows a book record in rw3the data base
 /// Each line repersents to a row in the books table
-struct bookTable: Identifiable, Codable, FetchableRecord, PersistableRecord {
+struct Book: Identifiable, Codable, FetchableRecord, PersistableRecord {
+    static let databaseTableName = "bookTable"
     var id: Int
     var title: String
     var genre: String
     var author: String
+
+    func summary () -> String{
+    return ("\(id): \(title)")
+}
+
 
     enum CodingKeys: String, CodingKey {
         case id = "bookID"
@@ -28,12 +34,16 @@ struct bookTable: Identifiable, Codable, FetchableRecord, PersistableRecord {
     }
 }
 
-struct borrowerTable: Identifiable, Codable, FetchableRecord, PersistableRecord {
-    var id: Int
+struct Borrower: Identifiable, Codable, FetchableRecord, PersistableRecord {
+    static let databaseTableName = "borrowerTable"
+    let id: Int?
     var name: String
     var phone: String
     var email: String
 
+func summary () -> String{
+    return ("\(id ?? 0): \(name) \(email) \(phone)")
+}
     enum CodingKeys: String, CodingKey {
         case id = "borrowerID"
         case name = "name"
@@ -49,12 +59,18 @@ struct borrowerTable: Identifiable, Codable, FetchableRecord, PersistableRecord 
     }
 }
 
-struct loansTable: Identifiable, Codable, FetchableRecord, PersistableRecord {
+struct loan: Identifiable, Codable, FetchableRecord, PersistableRecord {
+    static let databaseTableName = "loansTable"
     var id: Int
     var borrowerID: Int
     var bookID: Int
     var dateBorrowed: String
     var dateReturned: String
+
+    func summary() -> String{
+        let returned = dateReturned ?? "Not returned"
+        return "loan \(id ?? 0): Book \(bookID) Borrower \(borrowerID \(returned))"
+    }
 
     enum CodingKeys: String, CodingKey {
         case id = "loanID"
@@ -128,6 +144,7 @@ func bookOptions(dbQueue: DatabaseQueue) {
         print("INSERT ERROR", error)
     }
 }
+
 @main
 struct SwiftPlayground {
     static func main() {
@@ -153,9 +170,13 @@ struct SwiftPlayground {
                         let rows = try Row.fetchAll(db, sql: "SELECT * FROM bookTable")
                         print("\nBooks in libary:")
                         for row in rows {
-                            let id: Int = row["bookID"]
-                            let title: String = row["title"]
-                            print("\(id): \(title)")
+                            let book = bookTable(
+                            id: row["bookID"],
+                            title: row["title"],
+                            genre: row["genre"],
+                            author: row["author"]
+                            )
+                            print(book.summary())
                         }
                     }
                 case "3":
