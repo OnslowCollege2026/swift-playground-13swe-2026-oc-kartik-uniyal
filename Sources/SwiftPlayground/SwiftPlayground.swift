@@ -11,16 +11,16 @@ import GRDB
 struct Book: Identifiable, Codable, FetchableRecord, PersistableRecord {
     static let databaseTableName = "bookTable"
 
-    /// Auto assigned primary key
+    // Auto assigned primary key
     let id: Int?
-    /// Title of the book
+    // Title of the book
     var title: String
-    ///Genre of the book
+    //Genre of the book
     var genre: String
-    /// Author of the book
+    // Author of the book
     var author: String
 
-    /// Returns a formtted string of the book details
+    // Returns a formtted string of the book details
     func summary() -> String {
         return ("\(id ?? 0) | \(title) | \(author) | \(genre)")
     }
@@ -44,16 +44,16 @@ struct Book: Identifiable, Codable, FetchableRecord, PersistableRecord {
 struct Borrower: Identifiable, Codable, FetchableRecord, PersistableRecord {
     static let databaseTableName = "borrowerTable"
 
-    /// Auto generated primary key
+    // Auto generated primary key
     let id: Int?
-    /// Name of the borrower 
+    // Name of the borrower 
     var name: String
-    /// Phone number of the borrower
+    // Phone number of the borrower
     var phone: String
-    /// Email of the borrower
+    // Email of the borrower
     var email: String
 
-    /// Returns a formatted borrower details
+    // Returns a formatted borrower details
     func summary() -> String {
         return ("\(id ?? 0): \(name) \(email) \(phone)")
     }
@@ -77,18 +77,18 @@ struct Borrower: Identifiable, Codable, FetchableRecord, PersistableRecord {
 struct Loan: Identifiable, Codable, FetchableRecord, PersistableRecord {
     static let databaseTableName = "loansTable"
 
-    /// Auto generated primary key
+    // Auto generated primary key
     let id: Int?
-    /// A foregin key referencing to borrowers.ID
+    // A foregin key referencing to borrowers.ID
     var borrowerID: Int
-    /// A foregin ley referencing to book.ID
+    // A foregin ley referencing to book.ID
     var bookID: Int
-    /// The date of issue for the book (dd/mm/yyyy)
+    // The date of issue for the book (dd/mm/yyyy)
     var dateBorrowed: String
-    /// Date of when the book was returned with nil meaning its still on loan
+    // Date of when the book was returned with nil meaning its still on loan
     var dateReturned: String?
 
-    /// Retruns formatted loan details
+    // Retruns formatted loan details
     func summary() -> String {
         let returned = dateReturned ?? "Not returned"
         return "loan \(id ?? 0): Book \(bookID) Borrower \(borrowerID) \(returned)"
@@ -128,7 +128,7 @@ func currentDate() -> String {
 /// This function checks
 /// Parameters:
 ///     - bookID: The id of the book being borrowed
-///     - borroweredID: The id of the borrower who requests the book.
+///     - borrowererID: The id of the borrower who requests the book.
 ///     - dbQueue: The database connection used to read and write data.
 func loanBook(bookID: Int, borrowerID: Int, dbQueue: DatabaseQueue) {
     do {
@@ -150,6 +150,7 @@ func loanBook(bookID: Int, borrowerID: Int, dbQueue: DatabaseQueue) {
                 try Loan
                 .filter(Loan.Columns.bookID == bookID && Loan.Columns.dateReturned == nil)
                 .fetchOne(db)
+
             // If a loan alrady exsist, stops new loan creation
             guard activeLoan == nil else {
                 print("Book is already on loan")
@@ -277,29 +278,33 @@ func searchBook(bookSearch: String, dbQueue: DatabaseQueue) {
             let books = try Book.fetchAll(db)
             var found = false
             
-            // loops through 
+            // loops through each book and matches ths search 
             for book in books {
-
+                
+                // Makes sure the searach matches book
                 if bookSearch.isEmpty || book.title.lowercased().contains(bookSearch.lowercased())
                     || book.author.lowercased().contains(bookSearch.lowercased())
                     || book.genre.lowercased().contains(bookSearch.lowercased())
                 {
+                    // Checks if book is currently on a loan
                     let currentLoan =
                         try Loan
                         .filter(Loan.Columns.bookID == book.id && Loan.Columns.dateReturned == nil)
                         .fetchOne(db)
-
+                    // Availability of loan
                     let status: String
                     if currentLoan == nil {
                         status = "Available"
                     } else {
                         status = "On loan"
                     }
-
+                    // Book summary and availability
                     print("\(book.summary()), \(status)")
                     found = true
                 }
             }
+
+            // Error message if nothing matches the search
             if found == false {
                 print("No books were found")
             }
@@ -309,9 +314,18 @@ func searchBook(bookSearch: String, dbQueue: DatabaseQueue) {
     }
 }
 
+/// Adds a new borrrower to the database if all information is correcrt
+/// 
+/// - Parameter:
+///     - name: The name of the borrower
+///     - email: The email of the borrower
+///     - Phone: The phone number of the borrower
+///     - dbQueue: The database connection that's used to insert the borrower
 func addBorrower(name: String, email: String, phone: String, dbQueue: DatabaseQueue) {
     do {
         try dbQueue.write { db in
+
+        // Removes spaces and checks that no feild is blank
             if name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
                 || email.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
                 || phone.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
@@ -319,7 +333,11 @@ func addBorrower(name: String, email: String, phone: String, dbQueue: DatabaseQu
                 print("Please fill the prompt correclty")
                 return
             }
+
+            // Cretae the borrower record
             let borrower = Borrower(id: nil, name: name, phone: phone, email: email)
+
+            // Insert it into the database
             try borrower.insert(db)
             print("Borrower added")
         }
@@ -328,10 +346,17 @@ func addBorrower(name: String, email: String, phone: String, dbQueue: DatabaseQu
     }
 }
 
+/// Displays all the borrowers that are in the database
+/// 
+/// - Parameter dbQueue: The database connection that's used to read the borrower data
 func viewBorrowers(dbQueue: DatabaseQueue) {
     do {
         try dbQueue.read { db in
+
+            // Fetch all the borrower records insdie the data base
             let borrowers = try Borrower.fetchAll(db)
+
+            // Loops through borrower and prints their details
             for borrow in borrowers {
                 print(borrow.summary())
             }
@@ -341,27 +366,40 @@ func viewBorrowers(dbQueue: DatabaseQueue) {
     }
 }
 
+/// Edits an exisiting book in the database
+/// 
+/// - Parameters:
+///     - bookID: The ID of the book that would be edited 
+///     - dbQueue: The database connection used to update and read the books
 func editBook(bookID: Int, dbQueue: DatabaseQueue) {
     do {
         try dbQueue.write { db in
+
+            // Fetch the bookfrom the database using the book ID
             guard var book = try Book.fetchOne(db, key: bookID) else {
                 print("Book not found")
                 return
             }
+
+            // Asking what new title they would change it to, or if want to keep it the same
             print("Enter new title of book or click enter to keep current \(book.title)) ")
             if let input = readLine(), input != "" {
                 book.title = input
             }
 
+            // Ask for new author or keep it the same
             print("Enter new author of book or click enter to keep current \(book.author)) ")
             if let input = readLine(), input != "" {
                 book.author = input
             }
 
+            // Ask for new genre or keep it the same
             print("Enter new genre of book or click enter to keep current \(book.genre)) ")
             if let input = readLine(), input != "" {
                 book.genre = input
             }
+
+            // Input the updated books back into the database
             try book.update(db)
             print("Book updated")
         }
@@ -370,22 +408,34 @@ func editBook(bookID: Int, dbQueue: DatabaseQueue) {
     }
 }
 
+/// Allows user to delet book when there not on loan
+/// 
+/// - Parameters:
+///     - bookID: The id of the book to delet
+///     - dbQueue: The database connection that is used to read and remove records
 func deletBook(bookID: Int, dbQueue: DatabaseQueue) {
     do {
         try dbQueue.write { db in
+
+            // Checks if book exist in the database
             guard let book = try Book.fetchOne(db, key: bookID) else {
                 print("Book not found")
                 return
             }
+
+            // Checks if the book is activavly on loan
             let activeLoan =
                 try Loan
                 .filter(Loan.Columns.bookID == bookID && Loan.Columns.dateReturned == nil)
                 .fetchOne(db)
 
+            // Stops books that are on loan from deleting
             guard activeLoan == nil else {
                 print("Currently on loan")
                 return
             }
+
+            // Delets the book record from the databse
             try book.delete(db)
             print("Book delected")
         }
