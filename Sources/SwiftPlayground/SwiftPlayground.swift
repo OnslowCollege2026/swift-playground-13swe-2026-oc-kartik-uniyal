@@ -5,15 +5,22 @@
 import Foundation
 import GRDB
 
-/// shows a book record in rw3the data base
+/// Reepersents a book in the libary database
 /// Each line repersents to a row in the books table
+/// Maps the books table from the GRDB
 struct Book: Identifiable, Codable, FetchableRecord, PersistableRecord {
     static let databaseTableName = "bookTable"
+
+    /// Auto assigned primary key
     let id: Int?
+    /// Title of the book
     var title: String
+    ///Genre of the book
     var genre: String
+    /// Author of the book
     var author: String
 
+    /// Returns a formtted string of the book details
     func summary() -> String {
         return ("\(id ?? 0) | \(title) | \(author) | \(genre)")
     }
@@ -32,14 +39,21 @@ struct Book: Identifiable, Codable, FetchableRecord, PersistableRecord {
         static let author = Column("author")
     }
 }
-
+/// Repersents a registered libary memeber who can borrow books
+/// Stored in borrower table
 struct Borrower: Identifiable, Codable, FetchableRecord, PersistableRecord {
     static let databaseTableName = "borrowerTable"
+
+    /// Auto generated primary key
     let id: Int?
+    /// Name of the borrower 
     var name: String
+    /// Phone number of the borrower
     var phone: String
+    /// Email of the borrower
     var email: String
 
+    /// Returns a formatted borrower details
     func summary() -> String {
         return ("\(id ?? 0): \(name) \(email) \(phone)")
     }
@@ -58,19 +72,28 @@ struct Borrower: Identifiable, Codable, FetchableRecord, PersistableRecord {
     }
 }
 
+/// Repersents a loan linking a borrower to a borrowed book
+/// Tracks when a book is borrowed and returned
 struct Loan: Identifiable, Codable, FetchableRecord, PersistableRecord {
     static let databaseTableName = "loansTable"
+
+    /// Auto generated primary key
     let id: Int?
+    /// A foregin key referencing to borrowers.ID
     var borrowerID: Int
+    /// A foregin ley referencing to book.ID
     var bookID: Int
+    /// The date of issue for the book (dd/mm/yyyy)
     var dateBorrowed: String
+    /// Date of when the book was returned with nil meaning its still on loan
     var dateReturned: String?
 
+    /// Retruns formatted loan details
     func summary() -> String {
         let returned = dateReturned ?? "Not returned"
         return "loan \(id ?? 0): Book \(bookID) Borrower \(borrowerID) \(returned)"
     }
-
+    // Confoirms to codeable
     enum CodingKeys: String, CodingKey {
         case id = "loanID"
         case borrowerID
@@ -88,33 +111,52 @@ struct Loan: Identifiable, Codable, FetchableRecord, PersistableRecord {
         static let dateReturned = Column("dateReturned")
     }
 }
+
+/// Returns the current date in dd/MM/yyyy format 
+/// 
+/// This function uses a dateformatter into real human time
+/// 
+/// - Returns: A string that shows todays date
 func currentDate() -> String {
     let formatter = DateFormatter()
     formatter.dateFormat = "dd/MM/yyyy"
     return formatter.string(from: Date())
 }
 
+/// Creates a new loan record and links borrower to book
+/// 
+/// This function checks
+/// Parameters:
+///     - bookID: The id of the book being borrowed
+///     - borroweredID: The id of the borrower who requests the book.
+///     - dbQueue: The database connection used to read and write data.
 func loanBook(bookID: Int, borrowerID: Int, dbQueue: DatabaseQueue) {
     do {
         try dbQueue.write { db in
+
+            // Prevents creating loans for invalid useres
             guard let borrower = try Borrower.fetchOne(db, key: borrowerID) else {
                 print("Borrower not found")
                 return
             }
+            // Prevents creating loans for missing books
             guard let book = try Book.fetchOne(db, key: bookID) else {
                 print("Book not found")
                 return
             }
 
+            // Loan being active if dateReturned is nil
             let activeLoan =
                 try Loan
                 .filter(Loan.Columns.bookID == bookID && Loan.Columns.dateReturned == nil)
                 .fetchOne(db)
-
+            // If a loan alrady exsist, stops new loan creation
             guard activeLoan == nil else {
                 print("Book is already on loan")
                 return
             }
+
+            // Links borrower and book, also sets current date as  the borrow date
             guard let borrowerIDValue = borrower.id,
                 let bookIDValue = book.id
             else {
@@ -129,6 +171,8 @@ func loanBook(bookID: Int, borrowerID: Int, dbQueue: DatabaseQueue) {
                 dateBorrowed: currentDate(),
                 dateReturned: nil
             )
+
+            /// Complete the process and insert into database
             try newLoan.insert(db)
             print("Loan sueccful")
         }
@@ -151,14 +195,22 @@ func showMenu() {
         5.Add borrower
         6.View borrowers
         7.Edit book
-        8.Exit
+        8.Delet book
+        9.Exit
 
         Enter option:
         """)
 }
 
+/// Hnadles the process of borrowing by taking user input
+/// 
+/// - Parameter dbQueue: The database connection used to process the loan
 func borrowBook(dbQueue: DatabaseQueue) {
+
+    // Ask the user for the book ID
     print("Enter the ID of the book you would like to borrow:")
+
+    // Validates the book ID input 
     guard let bookInput = readLine(),
         let bookID = Int(bookInput)
     else {
@@ -166,7 +218,10 @@ func borrowBook(dbQueue: DatabaseQueue) {
         return
     }
 
+    // Ask the user for the borrower ID
     print("Enter borrower ID: ")
+
+    // Validate the borrower ID
     guard let borrowerInput = readLine(),
         let borrowerID = Int(borrowerInput)
     else {
@@ -174,52 +229,34 @@ func borrowBook(dbQueue: DatabaseQueue) {
         return
     }
 
+    // Create loan recordsusing inputs
     loanBook(bookID: bookID, borrowerID: borrowerID, dbQueue: dbQueue)
 }
 
-func bookOptions(dbQueue: DatabaseQueue) {
-    let books = [
-        ("Harry potter", "Fantasy", "J.K. Rowling"),
-        ("The Hunger Games", "Dystopian", "Suzanne Collins"),
-        ("Haiyku", "Poetry", "Unknown"),
-        ("The Lord Of The Rings", "Fantasy", "J.R.R. Tolkien"),
-        ("Attack On Titan", "Manga", "Hajime Isayama"),
-        ("The Little Prince", "Fable", "Antoine de Saint-Exupéry"),
-        ("Deathnote", "Manga", "Tsugumi Ohba"),
-        ("My Hero Academia", "Manga", "Kohei Horikoshi"),
-        ("Dragon Ball Z", "Manga", "Akira Toriyama"),
-        ("Bleach", "Manga", "Tite Kubo"),
-    ]
-    try? dbQueue.write { db in
-        for book in books {
-            let exists =
-                try Int.fetchOne(
-                    db,
-                    sql: "SELECT COUNT(*) FROM bookTable WHERE title = ?",
-                    arguments: [book.0]
-                ) ?? 0
-            if exists == 0 {
-                try db.execute(
-                    sql: "INSERT INTO bookTable (title, genre, author) VALUES (?, ?, ?)",
-                    arguments: [book.0, book.1, book.2]
-                )
-            }
-        }
-    }
-}
-
+/// marks the loan as returned by setting the return date to today
+/// 
+///  - Parameters:
+///     - loanID: The ID of the loan that is being returned
+///     - dbQueue: The database connection used t read and update the stuff
 func returnBook(loanID: Int, dbQueue: DatabaseQueue) {
     do {
         try dbQueue.write { db in
+            // Checks if the loan exsist in the databse
             guard var loan = try Loan.fetchOne(db, key: loanID) else {
                 print("Loan not found")
                 return
             }
+
+            // Stops a already returned book from returning
             guard loan.dateReturned == nil else {
                 print("Book already returned")
                 return
             }
+
+            // Makes todays date as the current datae
             loan.dateReturned = currentDate()
+            
+            // Saves the changes to the database
             try loan.update(db)
             print("Book successfully returned")
         }
@@ -228,12 +265,19 @@ func returnBook(loanID: Int, dbQueue: DatabaseQueue) {
     }
 }
 
+/// Searchs for books by the title, author, and genre 
+/// 
+/// - Parameters:
+///     - bookSearch: The input from the user to to search for books
+///     - dbQueue: The database connection to used to loan data and read the book
 func searchBook(bookSearch: String, dbQueue: DatabaseQueue) {
     do {
         try dbQueue.read { db in
+            // Get all books from the database
             let books = try Book.fetchAll(db)
             var found = false
-
+            
+            // loops through 
             for book in books {
 
                 if bookSearch.isEmpty || book.title.lowercased().contains(bookSearch.lowercased())
@@ -325,6 +369,30 @@ func editBook(bookID: Int, dbQueue: DatabaseQueue) {
         print("Database error")
     }
 }
+
+func deletBook(bookID: Int, dbQueue: DatabaseQueue) {
+    do {
+        try dbQueue.write { db in
+            guard let book = try Book.fetchOne(db, key: bookID) else {
+                print("Book not found")
+                return
+            }
+            let activeLoan =
+                try Loan
+                .filter(Loan.Columns.bookID == bookID && Loan.Columns.dateReturned == nil)
+                .fetchOne(db)
+
+            guard activeLoan == nil else {
+                print("Currently on loan")
+                return
+            }
+            try book.delete(db)
+            print("Book delected")
+        }
+    } catch {
+        print("Database error")
+    }
+}
 @main
 struct SwiftPlayground {
     static func main() {
@@ -336,7 +404,6 @@ struct SwiftPlayground {
                 print("Book count: \(count)")
             }
 
-            bookOptions(dbQueue: dbQueue)
             var isRunning = true
             while isRunning {
                 showMenu()
@@ -348,13 +415,14 @@ struct SwiftPlayground {
 
                 case "2":
                     print("Enter loan ID")
-                    guard let input = readLine(),
+                    if let input = readLine(),
                         let loanID = Int(input)
-                    else {
+                    {
+                        returnBook(loanID: loanID, dbQueue: dbQueue)
+                    } else {
                         print("Invalid loan ID")
-                        return
                     }
-                    returnBook(loanID: loanID, dbQueue: dbQueue)
+
                 case "3":
                     print("Enter book title, author or genre:")
                     let search = readLine() ?? ""
@@ -388,9 +456,18 @@ struct SwiftPlayground {
                     } else {
                         print("Invalid book ID")
                     }
+
                 case "8":
+                    print("Enter the book ID you woulw want to delete:")
+                    if let input = readLine(), let bookID = Int(input) {
+                        deletBook(bookID: bookID, dbQueue: dbQueue)
+                    } else {
+
+                    }
+
+                case "9":
                     isRunning = false
-                    print("Goodbye, thank you")
+                    print("Goodbye, thank you!")
                 default:
                     print("Invalid option")
                 }
@@ -399,5 +476,38 @@ struct SwiftPlayground {
             print("Database error: \(error)")
         }
     }
-
 }
+
+
+/*
+func bookOptions(dbQueue: DatabaseQueue) {
+    let books = [
+        ("Harry potter", "Fantasy", "J.K. Rowling"),
+        ("The Hunger Games", "Dystopian", "Suzanne Collins"),
+        ("Haiyku", "Poetry", "Haruichi Furudate"),
+        ("The Lord Of The Rings", "Fantasy", "J.R.R. Tolkien"),
+        ("Attack On Titan", "Manga", "Hajime Isayama"),
+        ("The Little Prince", "Fable", "Antoine de Saint-Exupéry"),
+        ("Deathnote", "Manga", "Tsugumi Ohba"),
+        ("My Hero Academia", "Manga", "Kohei Horikoshi"),
+        ("Dragon Ball Z", "Manga", "Akira Toriyama"),
+        ("Bleach", "Manga", "Tite Kubo"),
+    ]
+    try? dbQueue.write { db in
+        for book in books {
+            let exists =
+                try Int.fetchOne(
+                    db,
+                    sql: "SELECT COUNT(*) FROM bookTable WHERE title = ?",
+                    arguments: [book.0]
+                ) ?? 0
+            if exists == 0 {
+                try db.execute(
+                    sql: "INSERT INTO bookTable (title, genre, author) VALUES (?, ?, ?)",
+                    arguments: [book.0, book.1, book.2]
+                )
+            }
+        }
+    }
+}
+*/
