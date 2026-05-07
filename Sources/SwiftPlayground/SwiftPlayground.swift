@@ -58,7 +58,7 @@ struct Borrower: Identifiable, Codable, FetchableRecord, PersistableRecord {
     }
 }
 
-struct loan: Identifiable, Codable, FetchableRecord, PersistableRecord {
+struct Loan: Identifiable, Codable, FetchableRecord, PersistableRecord {
     static let databaseTableName = "loansTable"
     let id: Int?
     var borrowerID: Int
@@ -88,6 +88,11 @@ struct loan: Identifiable, Codable, FetchableRecord, PersistableRecord {
         static let dateReturned = Column("dateReturned")
     }
 }
+func currentDate() -> String {
+    let formatter = DateFormatter()
+    formatter.dateFormat = "dd/MM/yyyy"
+    return formatter.string(from: Date())
+}
 
 func loanBook(bookID: Int, borrowerID: Int, dbQueue:DatabaseQueue) {
     do{
@@ -95,57 +100,74 @@ func loanBook(bookID: Int, borrowerID: Int, dbQueue:DatabaseQueue) {
         guard let borrower = try Borrower.fetchOne(db, key: borrowerID) else{
             print("Borrower not found")
             return
-
+        }
         guard let book = try Book.fetchOne(db, key: bookID) else {
             print("Book not found")
             return
+        }
 
         let activeLoan = try Loan
-        .filter(LoanColumns.bookID == bookID && Loan.columns.dateReturned == nil)
+        .filter(Loan.Columns.bookID == bookID && Loan.Columns.dateReturned == nil)
         .fetchOne(db)
 
         guard activeLoan == nil else{
             print("Book is already on loan")
             return
         }
+        guard let borrowerIDValue = borrower.id,
+        let bookIDValue = book.id else{
+            print("Data error: Missing ID")
+            return
+        }
 
         let newLoan = Loan(
         id: nil,
-        borrowerID: borrower.id,
-        bookID: book.id, 
+        borrowerID: borrowerIDValue,
+        bookID: bookIDValue, 
         dateBorrowed: currentDate(),
         dateReturned:nil
         )
+        try newLoan.insert(db)
+        print("Loan sueccful")
         }
-        }}
+        } catch{
+            print("Database error")
+        }
     }
-}
+
+
 /// Shows the main menu options for the libary
 func showMenu() {
-    print(
-        """
-        \nLibrary System
-        1.Borrow book
-        2.View books
-        3.Exit
-        """)
+    print("""
+    ========================
+        Library System
+    ========================
+    1.Borrow book
+    2.Return a book
+    3.Search a book
+    4.View all books
+    5.Exit
+    
+    Enter option:
+    """)
 }
 
 func borrowBook(dbQueue: DatabaseQueue) {
     print("Enter the ID of the book you would like to borrow:")
-    let input = readLine() ?? ""
-
-    if let bookID = Int(input) {
-        try? dbQueue.write { db in
-            try db.execute(
-                sql: "INSERT INTO loansTable (bookID) VALUES (?)",
-                arguments: [bookID]
-            )
-        }
-        print("Book borrowed")
-    } else {
-        print("Invalid ID")
+    guard let bookInput = readLine(),
+    let bookID = Int(bookInput) else {
+        print("Invalid book ID")
+        return
     }
+
+    print("Enter borrower ID: ")
+    guard let borrowerInput = readLine(),
+    let borrowerID = Int(borrowerInput) else{
+        print("Invalid borrower ID")
+        return
+    }
+
+    loanBook(bookID: bookID, borrowerID: borrowerID, dbQueue: dbQueue)
 }
 
 func bookOptions(dbQueue: DatabaseQueue) {
@@ -179,6 +201,63 @@ func bookOptions(dbQueue: DatabaseQueue) {
     }
 }
 
+func returnBook (loanID: Int, dbQueue: DatabaseQueue) {
+    do{
+        try dbQueue.write {db in 
+        guard var loan = try Loan.fetchOne(db, key: loanID) else {
+            print("Loan not found")
+            return
+        }
+        guard loan.dateReturned == nil else {
+            print("Book already returned")
+            return
+        }
+        loan.dateReturned = currentDate()
+        try loan.update(db)
+        print("Book successfully returned")
+        }
+    } catch{
+        print("Database error")
+    }
+}
+
+func searchBook(bookSearch: String, dbQueue: DatabaseQueue){
+    do{
+        try dbQueue.read { db in 
+        let books = try Book.fetchAll(db)
+        var found = false
+        
+        for book in books{
+
+            if bookSearch.isEmpty ||
+            book.title.lowercased().contains(bookSearch.lowercased()),
+            book.author.lowercased().contains(bookSearch.lowercased()) {
+
+            let currentLoan = try Loan
+            .filter(Loan.Columns.bookID == book.id && Loan.Columns.dateReturned == nil)
+            .fetchOne(db)
+
+            let status: String
+            if (currentLoan == nil){
+            status = "Available"
+            } else {
+                status = "On loan"
+            }
+            
+
+            print("\(book.summary()), \(status)")
+            found = true
+            }
+        }
+        if found == false{
+            print("No books were found")
+        }
+        }
+    }catch{
+        print("Database error")
+    }
+}
+
 @main
 struct SwiftPlayground {
     static func main() {
@@ -201,23 +280,27 @@ struct SwiftPlayground {
                     borrowBook(dbQueue: dbQueue)
 
                 case "2":
-                    try dbQueue.read { db in
-                        let rows = try Row.fetchAll(db, sql: "SELECT * FROM bookTable")
-                        print("\nBooks in libary:")
-                        for row in rows {
-                            let book = Book(
-                                id: row["bookID"] ?? 0,
-                                title: row["title"],
-                                genre: row["genre"],
-                                author: row["author"]
-                            )
-                            print("\(book.id ?? 0): \(book.title)")
-                        }
-                    }
+                print("Enter loan ID")
+                guard let input = readLine(),
+                let loanID = Int(input) else{
+                    print("Invalid loan ID")
+                    return
+                }
+                returnBook(loanID: loanID, dbQueue: dbQueue)
                 case "3":
-                    isRunning = false
-                    print("Goodbye")
-
+                    print("Enter book titleor author")
+                    let search = readLine() ?? ""
+                    searchBook(bookSearch: search, dbQueue: dbQueue)
+                case "4":
+                try dbQueue.read { db in 
+                let books = try Book.fetchAll(db)
+                for book in books{
+                    print(book.summary())
+                    }
+                }
+                case "5":
+                isRunning = false
+                print("Goodbye, thank you")
                 default:
                     print("Invalid option")
                 }
@@ -228,27 +311,3 @@ struct SwiftPlayground {
     }
 
 }
-
-///func bookOptions(dbQueue: DatabaseQueue) {
-let books = [
-    "Harry potter",
-    "The Hunger Games",
-    "Haiyku",
-    "The Lord Of The Rings",
-    "Attack On Titan",
-    "The Little Prince",
-    "Deathnote",
-    "My Hero Academia",
-    "Dragon Ball Z",
-    "Bleach",
-]
-
-///   try? dbQueue.write { db in
-//       for book in books {
-//         try db.execute(
-//           sql: "INSERT INTO bookTable (title) VALUES (?)",
-//     arguments: [book]
-//   )
-// }
-//    }
-//}
