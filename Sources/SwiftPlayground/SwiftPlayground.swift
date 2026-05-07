@@ -9,21 +9,20 @@ import GRDB
 /// Each line repersents to a row in the books table
 struct Book: Identifiable, Codable, FetchableRecord, PersistableRecord {
     static let databaseTableName = "bookTable"
-    var id: Int
+    let id: Int?
     var title: String
     var genre: String
     var author: String
 
-    func summary () -> String{
-    return ("\(id): \(title)")
-}
-
+    func summary() -> String {
+        return ("\(title): \(author): \(genre)")
+    }
 
     enum CodingKeys: String, CodingKey {
         case id = "bookID"
-        case title = "title"
-        case genre = "genre"
-        case author = "author"
+        case title 
+        case genre 
+        case author 
     }
 
     enum Columns {
@@ -41,14 +40,14 @@ struct Borrower: Identifiable, Codable, FetchableRecord, PersistableRecord {
     var phone: String
     var email: String
 
-func summary () -> String{
-    return ("\(id ?? 0): \(name) \(email) \(phone)")
-}
+    func summary() -> String {
+        return ("\(id ?? 0): \(name) \(email) \(phone)")
+    }
     enum CodingKeys: String, CodingKey {
         case id = "borrowerID"
-        case name = "name"
-        case phone = "phone"
-        case email = "email"
+        case name
+        case phone 
+        case email 
     }
 
     enum Columns {
@@ -61,23 +60,23 @@ func summary () -> String{
 
 struct loan: Identifiable, Codable, FetchableRecord, PersistableRecord {
     static let databaseTableName = "loansTable"
-    var id: Int
+    let id: Int?
     var borrowerID: Int
     var bookID: Int
     var dateBorrowed: String
-    var dateReturned: String
+    var dateReturned: String?
 
-    func summary() -> String{
+    func summary() -> String {
         let returned = dateReturned ?? "Not returned"
-        return "loan \(id ?? 0): Book \(bookID) Borrower \(borrowerID \(returned))"
+        return "loan \(id ?? 0): Book \(bookID) Borrower \(borrowerID) \(returned)"
     }
 
     enum CodingKeys: String, CodingKey {
         case id = "loanID"
-        case borrowerID = "borrowerID"
-        case bookID = "bookID"
-        case dateBorrowed = "dateBorrowed"
-        case dateReturned = "dateReturned"
+        case borrowerID
+        case bookID
+        case dateBorrowed 
+        case dateReturned 
 
     }
 
@@ -90,6 +89,37 @@ struct loan: Identifiable, Codable, FetchableRecord, PersistableRecord {
     }
 }
 
+func loanBook(bookID: Int, borrowerID: Int, dbQueue:DatabaseQueue) {
+    do{
+        try dbQueue.write {db in
+        guard let borrower = try Borrower.fetchOne(db, key: borrowerID) else{
+            print("Borrower not found")
+            return
+
+        guard let book = try Book.fetchOne(db, key: bookID) else {
+            print("Book not found")
+            return
+
+        let activeLoan = try Loan
+        .filter(LoanColumns.bookID == bookID && Loan.columns.dateReturned == nil)
+        .fetchOne(db)
+
+        guard activeLoan == nil else{
+            print("Book is already on loan")
+            return
+        }
+
+        let newLoan = Loan(
+        id: nil,
+        borrowerID: borrower.id,
+        bookID: book.id, 
+        dateBorrowed: currentDate(),
+        dateReturned:nil
+        )
+        }
+        }}
+    }
+}
 /// Shows the main menu options for the libary
 func showMenu() {
     print(
@@ -120,28 +150,32 @@ func borrowBook(dbQueue: DatabaseQueue) {
 
 func bookOptions(dbQueue: DatabaseQueue) {
     let books = [
-        "Harry potter",
-        "The Hunger Games",
-        "Haiyku",
-        "The Lord Of The Rings",
-        "Attack On Titan",
-        "The Little Prince",
-        "Deathnote",
-        "My Hero Academia",
-        "Dragon Ball Z",
-        "Bleach",
+        ("Harry potter", "Fantasy", "J.K. Rowling"),
+        ("The Hunger Games", "Dystopian", "Suzanne Collins"),
+        ("Haiyku", "Poetry", "Unknown"),
+        ("The Lord Of The Rings", "Fantasy", "J.R.R. Tolkien"),
+        ("Attack On Titan", "Manga", "Hajime Isayama"),
+        ("The Little Prince", "Fable", "Antoine de Saint-Exupéry"),
+        ("Deathnote", "Manga", "Tsugumi Ohba"),
+        ("My Hero Academia", "Manga", "Kohei Horikoshi"),
+        ("Dragon Ball Z", "Manga", "Akira Toriyama"),
+        ("Bleach", "Manga", "Tite Kubo"),
     ]
-    do {
-        try dbQueue.write { db in
-            for book in books {
+    try? dbQueue.write { db in
+        for book in books {
+            let exists =
+                try Int.fetchOne(
+                    db,
+                    sql: "SELECT COUNT(*) FROM bookTable WHERE title = ?",
+                    arguments: [book.0]
+                ) ?? 0
+            if exists == 0 {
                 try db.execute(
                     sql: "INSERT INTO bookTable (title, genre, author) VALUES (?, ?, ?)",
-                    arguments: [book, "Unknown", "Unknown"]
+                    arguments: [book.0, book.1, book.2]
                 )
             }
         }
-    } catch {
-        print("INSERT ERROR", error)
     }
 }
 
@@ -155,6 +189,7 @@ struct SwiftPlayground {
                 let count = try Int.fetchOne(db, sql: "SELECT COUNT (*) FROM bookTable") ?? 0
                 print("Book count: \(count)")
             }
+
             bookOptions(dbQueue: dbQueue)
             var isRunning = true
             while isRunning {
@@ -170,13 +205,13 @@ struct SwiftPlayground {
                         let rows = try Row.fetchAll(db, sql: "SELECT * FROM bookTable")
                         print("\nBooks in libary:")
                         for row in rows {
-                            let book = bookTable(
-                            id: row["bookID"],
-                            title: row["title"],
-                            genre: row["genre"],
-                            author: row["author"]
+                            let book = Book(
+                                id: row["bookID"] ?? 0,
+                                title: row["title"],
+                                genre: row["genre"],
+                                author: row["author"]
                             )
-                            print(book.summary())
+                            print("\(book.id ?? 0): \(book.title)")
                         }
                     }
                 case "3":
@@ -195,25 +230,25 @@ struct SwiftPlayground {
 }
 
 ///func bookOptions(dbQueue: DatabaseQueue) {
-    let books = [
-        "Harry potter",
-        "The Hunger Games",
-        "Haiyku",
-        "The Lord Of The Rings",
-        "Attack On Titan",
-        "The Little Prince",
-        "Deathnote",
-        "My Hero Academia",
-        "Dragon Ball Z",
-        "Bleach",
-    ]
+let books = [
+    "Harry potter",
+    "The Hunger Games",
+    "Haiyku",
+    "The Lord Of The Rings",
+    "Attack On Titan",
+    "The Little Prince",
+    "Deathnote",
+    "My Hero Academia",
+    "Dragon Ball Z",
+    "Bleach",
+]
 
- ///   try? dbQueue.write { db in
- //       for book in books {
-   //         try db.execute(
-     //           sql: "INSERT INTO bookTable (title) VALUES (?)",
-           //     arguments: [book]
-         //   )
-       // }
+///   try? dbQueue.write { db in
+//       for book in books {
+//         try db.execute(
+//           sql: "INSERT INTO bookTable (title) VALUES (?)",
+//     arguments: [book]
+//   )
+// }
 //    }
 //}
