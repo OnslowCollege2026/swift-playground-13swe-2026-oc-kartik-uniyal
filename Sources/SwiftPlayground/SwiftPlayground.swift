@@ -407,11 +407,12 @@ func viewBorrowers(dbQueue: DatabaseQueue) {
                     print("No current active loans")
                 } else {
                     for loan in activeLoans {
-                    let book = try Book.fetchOne(db, key: loan.bookID)
+                        let book = try Book.fetchOne(db, key: loan.bookID)
 
-                    print(
-                        "Loan ID: \(Loan.id ?? 0) | Book: \(book?.title ?? "unkown")"
-                    )
+                        print(
+                            "Loan ID: \(loan.id ?? 0) | Book: \(book?.title ?? "unkown")"
+                        )
+                    }
                 }
             }
         }
@@ -419,7 +420,7 @@ func viewBorrowers(dbQueue: DatabaseQueue) {
         print("Database error")
     }
 }
-}
+
 /// Edits an exisiting book in the database
 ///
 /// - Parameters:
