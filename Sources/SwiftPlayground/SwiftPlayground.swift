@@ -286,7 +286,7 @@ func returnBook(loanID: Int, dbQueue: DatabaseQueue) {
             // Makes todays date as the current data to show book has been returned
             loan.dateReturned = currentDate()
 
-            // Saves the changes back into to the database
+            // Saves the changes back into the database
             try loan.update(db)
             print("Book successfully returned")
         }
@@ -303,20 +303,23 @@ func returnBook(loanID: Int, dbQueue: DatabaseQueue) {
 func searchBook(bookSearch: String, dbQueue: DatabaseQueue) {
     do {
         try dbQueue.read { db in
-            // Get all books from the database
+
+            // Get all books from the database 
             let books = try Book.fetchAll(db)
             var found = false
 
             // loops through each book and matches ths search
             for book in books {
 
-                // Makes sure the searach matches book
+                // Makes sure the searach matches the current books
                 if bookSearch.isEmpty
                     || book.title.lowercased().contains(bookSearch.lowercased())
                     || book.author.lowercased().contains(bookSearch.lowercased())
                     || book.genre.lowercased().contains(bookSearch.lowercased())
                 {
+
                     // Checks if book is currently on a loan
+                    // If dateReturned is nil then book is on active loan
                     let currentLoan =
                         try Loan
                         .filter(
@@ -324,14 +327,16 @@ func searchBook(bookSearch: String, dbQueue: DatabaseQueue) {
                                 && Loan.Columns.dateReturned == nil
                         )
                         .fetchOne(db)
-                    // Availability of loan
+
+                    // Availability of loans
                     let status: String
                     if currentLoan == nil {
                         status = "Available"
                     } else {
                         status = "On loan"
                     }
-                    // Book summary and availability
+                    
+                    // Book summary and availability 
                     print("\(book.summary()), \(status)")
                     found = true
                 }
@@ -358,7 +363,7 @@ func addBorrower(name: String, email: String, phone: String, dbQueue: DatabaseQu
     do {
         try dbQueue.write { db in
 
-            // Removes spaces and checks that no feild is blank
+            // Removes spaces and all white spaces, to check that no feild is blank
             if name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
                 || email.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
                 || phone.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
@@ -367,10 +372,11 @@ func addBorrower(name: String, email: String, phone: String, dbQueue: DatabaseQu
                 return
             }
 
-            // Cretae the borrower record
+            // Cretae the borrower record using data input
+            // ID is set to nil so database auto generates it
             let borrower = Borrower(id: nil, name: name, phone: phone, email: email)
 
-            // Insert it into the database
+            // Insert the borrower into the database
             try borrower.insert(db)
             print("Borrower added")
         }
@@ -378,6 +384,7 @@ func addBorrower(name: String, email: String, phone: String, dbQueue: DatabaseQu
         print("Database error")
     }
 }
+
 /// Add a new book into the database
 ///
 /// - Parameters:
@@ -389,7 +396,7 @@ func addBook(title: String, genre: String, author: String, dbQueue: DatabaseQueu
     do {
         try dbQueue.write { db in
 
-            // Makes sure no empty values are added
+            // Trims all whitespaces and ensures no feild is empty
             if title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
                 || genre.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
                 || author.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
@@ -398,7 +405,8 @@ func addBook(title: String, genre: String, author: String, dbQueue: DatabaseQueu
                 return
             }
 
-            // Creates a new book from the use input
+            // Creates a new book from the user input
+            // ID is set to nil so database auto genererats it 
             let book = Book(
                 id: nil,
                 title: title,
@@ -422,7 +430,7 @@ func viewBorrowers(dbQueue: DatabaseQueue) {
     do {
         try dbQueue.read { db in
 
-            // Fetch all the borrower records inside the data base
+            // FetchES all the borrower records inside the data base
             let borrowers = try Borrower.fetchAll(db)
 
             // Loops through borrower and prints their details and
