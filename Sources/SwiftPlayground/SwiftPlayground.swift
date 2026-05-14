@@ -8,6 +8,7 @@ import GRDB
 /// A constant that's used when the database ID is invalid or missing
 let placeHolderID = -1
 
+// Constants used to controllthe formating the tables width and alignment 
 let idLength = 4
 
 let titleLength = 25
