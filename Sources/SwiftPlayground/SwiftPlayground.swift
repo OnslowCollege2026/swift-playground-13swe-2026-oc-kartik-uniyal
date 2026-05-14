@@ -46,6 +46,7 @@ struct Book: Identifiable, Codable, FetchableRecord, PersistableRecord {
         static let author = Column("author")
     }
 }
+
 /// Represents a registered library member who can borrow books
 ///
 /// Each borrower corresponds to a row in the borrowers table
@@ -308,9 +309,11 @@ func searchBook(bookSearch: String, dbQueue: DatabaseQueue) {
             let books = try Book.fetchAll(db)
             var found = false
 
+            print("-------------------------------------------------------------")
+            print("ID   TITLE                         AUTHOR              YEAR)")
+            print("-------------------------------------------------------------")
             // loops through each book and matches ths search
             for book in books {
-
                 // Makes sure the searach matches the current books
                 if bookSearch.isEmpty
                     || book.title.lowercased().contains(bookSearch.lowercased())
@@ -336,6 +339,20 @@ func searchBook(bookSearch: String, dbQueue: DatabaseQueue) {
                         status = "On loan"
                     }
                     
+
+                    let currentLoan = try Loan.filter(
+                    Loan.Columns.bookID == book.id && 
+                    Loan.Columns.dateReturned == nil
+                )
+                .fetchOne(db)
+
+                let id = String(book.id ?? placeHolderID).padding(toLength: 4, withPad: "", startingAt: 0)
+                let title = book.title.padding(toLength: 30, withPad: "", startingAt: 0)
+                let author = book.author.padding(toLength: 25, withPad: "", startingAt: 0)
+                let genre = book.genre.padding(toLength: 10, withPad: "", startingAt: 0)
+                let title = book.title.padding(toLength: 30, withPad: "", startingAt: 0)
+                let stat = status.padding(toLength: 10, withPad: "", startingAt: 0)
+
                     // Book summary and availability 
                     print("\(book.summary()), \(status)")
                     found = true
