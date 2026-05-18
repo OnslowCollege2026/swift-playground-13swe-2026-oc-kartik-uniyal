@@ -294,7 +294,7 @@ func deleteBorrower(borrowerID: Int, dbQueue: DatabaseQueue) {
 
             // Checks if the borrower exisits in the database
             guard let borrower = try Borrower.fetchOne(db, key: borrowerID) else {
-                print("Borrower not find")
+                print("Borrower not found")
                 return
             }
 
@@ -448,6 +448,22 @@ func addBorrower(name: String, email: String, phone: String, dbQueue: DatabaseQu
                 return
             }
 
+            // Formatting limits for display
+            if name.count > 30 {
+                print("Name is to long, (max 30 characters)")
+                return
+            }
+
+            if email.count > 40 {
+                print("Email is to long, (max 40 characters)")
+                return
+            }
+
+            if phone.count > 12 {
+                print("Phone number is to long,(max 12 characters)")
+                return
+            }
+
             // Checks if the email contains these requirements to prevent invalid input
             if !email.contains("@") || !email.contains(".") {
                 print("Please input a valid email")
@@ -487,6 +503,23 @@ func addBook(title: String, genre: String, author: String, dbQueue: DatabaseQueu
                 return
             }
 
+            // Prevents the text from exceeding format limits
+            if title.count > 40 {
+                print("Title is to long please keep it 40 characters or less")
+                return
+            }
+
+            if author.count > 30 {
+                print("Author is to long please keep it 30 characters or less")
+                return
+            }
+
+            if genre.count > 20 {
+                print("Genre is to long please keep it 20 characters or less")
+                return
+            }
+
+
             // Creates a new book from the user input
             // ID is set to nil so database auto genererats it
             let book = Book(
@@ -498,7 +531,7 @@ func addBook(title: String, genre: String, author: String, dbQueue: DatabaseQueu
 
             // Inserts the new book into the database
             try book.insert(db)
-            print("Book succsefully")
+            print("Book succsefully added")
         }
     } catch {
         print("Database error")
@@ -552,8 +585,12 @@ func viewBorrowers(dbQueue: DatabaseQueue) {
                 for loan in activeLoans {
                     let book = try Book.fetchOne(db, key: loan.bookID)
 
+                    // Limits the title length to prevent going past 80
+                    let title = String((book?.title ?? "Unknown").prefix(30))
+
+                    // Displays loan detials
                     print(
-                        "Loan \(loan.id ?? placeHolderID): \(book?.title ?? "Unknown") (Borrower: \(borrow.name))"
+                        "Loan \(loan.id ?? placeHolderID): \(title) (Borrower: \(borrow.name))"
                     )
                     hasLoans = true
                 }
